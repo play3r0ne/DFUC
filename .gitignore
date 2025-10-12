@@ -3,3 +3,7 @@ venv/
 dataset/
 
 DFUC-Classifier.git/
+
+test_image.jpg
+
+test_mask.png

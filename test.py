@@ -22,7 +22,6 @@ img_transforms = A.Compose([
         ToTensorV2()
     ])
 
-
 def iou_fn(y_pred, y_true):
         y_pred = torch.sigmoid(y_pred)
         y_pred = (y_pred > 0.5).float()
@@ -37,6 +36,8 @@ def iou_fn(y_pred, y_true):
         iou = (inter + 1e-6) / (union + 1e-6)
         return iou.mean().item() * 100
 
+dice_fn = smp.losses.DiceLoss(mode='binary')
+focal_fn = smp.losses.FocalLoss('binary')
 
 ### PREPROCESSING IMAGES
 class DFUdataset(Dataset):
@@ -70,7 +71,6 @@ class DFUdataset(Dataset):
             mask = augmented['mask'].unsqueeze(0).float()
 
             return image, mask
-        
 
 if __name__ == "__main__":
 
@@ -83,6 +83,7 @@ if __name__ == "__main__":
     model = smp.Unet(
         encoder_name="resnet50",  
         encoder_weights="imagenet",
+        encoder_depth=5,
         in_channels=3,
         classes=1,
         activation=None,  # raw logits produced without activation function
@@ -91,8 +92,6 @@ if __name__ == "__main__":
 
     ## STUFF TO INITIALISE
     model = model.to(device)
-    dice_fn = smp.losses.DiceLoss(mode='binary')
-    focal_fn = smp.losses.FocalLoss('binary')
     optimizer = torch.optim.AdamW(model.parameters(), lr=8e-5)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', patience=3, factor=0.7)
 
